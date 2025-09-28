@@ -27,8 +27,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import mongoose from "mongoose";
-import authRoutes from "./routes/auth.js"; // <-- correct relative path
+import connectDB from "./config/db.js"; // <-- correct import
+import authRoutes from "./routes/auth.js";
 
 dotenv.config();
 const app = express();
@@ -37,17 +37,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.log('❌ MongoDB connection error:', err));
+// Connect to MongoDB
+connectDB();
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
 
 // Health check
-app.get('/', (req, res) => {
-  res.json({ message: 'API is running!' });
+app.get("/", (req, res) => {
+  res.json({ message: "API is running!" });
 });
 
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found", path: req.originalUrl });
+});
+
+// Export for Vercel
 export default app;
