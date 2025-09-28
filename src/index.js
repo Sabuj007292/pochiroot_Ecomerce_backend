@@ -28,7 +28,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
-import authRoutes from "./routes/auth.js";
+import authRoutes from "../routes/auth.js";
 
 dotenv.config();
 const app = express();
@@ -37,48 +37,50 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('MongoDB connected'))
-.catch((err) => console.log('MongoDB connection error:', err));
+// MongoDB connection (optimized for serverless)
+let isConnected = false;
+async function connectDB() {
+  if (isConnected) return;
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      dbName: process.env.DB_NAME || "vercelApp",
+    });
+    isConnected = true;
+    console.log("✅ MongoDB connected:", conn.connection.host);
+  } catch (error) {
+    console.error("❌ MongoDB connection error:", error);
+  }
+}
+connectDB();
 
 // Routes
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
 
-// Health check route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'API is running!',
-    status: 'success',
-    timestamp: new Date().toISOString()
+// Health check
+app.get("/", (req, res) => {
+  res.json({
+    message: "🚀 API is running on Vercel!",
+    status: "success",
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Test route to check server
-app.get('/test', (req, res) => {
-  res.json({ 
-    message: 'Server is working perfectly!',
-    port: process.env.PORT || 5000,
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
-
-// 404 handler - Fixed for Express v5
-app.use('/*path', (req, res) => {
+// 404 handler
+app.use((req, res) => {
   res.status(404).json({
-    message: 'Route not found',
-    path: req.originalUrl
+    message: "Route not found",
+    path: req.originalUrl,
   });
 });
 
-// Error handling middleware
+// Error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("❌ Error:", err.stack);
   res.status(500).json({
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'production' ? {} : err.message
+    message: "Something went wrong!",
+    error: process.env.NODE_ENV === "production" ? {} : err.message,
   });
 });
 
-// For Vercel deployment - export the app
+// Export for Vercel
 export default app;
