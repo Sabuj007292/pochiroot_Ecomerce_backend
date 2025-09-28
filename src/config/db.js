@@ -19,14 +19,13 @@
 import mongoose from "mongoose";
 
 const connectDB = async () => {
+  if (mongoose.connections[0].readyState) return;
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
-      dbName: "pochiroot", // Optional, you can also put DB in URI
-    });
+    await mongoose.connect(process.env.MONGO_URI, { dbName: "pochiroot" });
     console.log("✅ MongoDB connected");
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error);
-    process.exit(1);
+    throw new Error(error);
   }
 };
 
