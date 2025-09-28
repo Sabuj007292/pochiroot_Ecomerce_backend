@@ -27,7 +27,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import connectDB from "./config/db.js"; // <-- correct import
+import connectDB from "./config/db.js"; // Correct path
 import authRoutes from "./routes/auth.js";
 
 dotenv.config();
@@ -53,5 +53,4 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found", path: req.originalUrl });
 });
 
-// Export for Vercel
 export default app;

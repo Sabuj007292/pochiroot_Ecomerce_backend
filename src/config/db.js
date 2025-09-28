@@ -17,12 +17,12 @@
 
 // export default connectDB;
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-dotenv.config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI, {
+      dbName: "pochiroot", // Optional, you can also put DB in URI
+    });
     console.log("✅ MongoDB connected");
   } catch (error) {
     console.error("❌ MongoDB connection failed:", error);
@@ -31,3 +31,4 @@ const connectDB = async () => {
 };
 
 export default connectDB;
+
