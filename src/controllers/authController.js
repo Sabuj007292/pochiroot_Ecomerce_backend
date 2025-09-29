@@ -97,20 +97,26 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-// ✅ Register Controller
+// ✅ Register User
 export const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
 
+  if (!name || !email || !password)
+    return res.status(400).json({ message: "All fields are required" });
+
   try {
-    const userExists = await User.findOne({ email });
-    if (userExists)
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
       return res.status(400).json({ message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({ name, email, password: hashedPassword });
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
 
-    // Generate JWT Token
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
@@ -119,11 +125,7 @@ export const registerUser = async (req, res) => {
 
     res.status(201).json({
       message: "User created successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user: { id: user._id, name: user.name, email: user.email },
       token,
     });
   } catch (error) {
@@ -131,9 +133,12 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// ✅ Login Controller
+// ✅ Login User
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password)
+    return res.status(400).json({ message: "Email and password required" });
 
   try {
     const user = await User.findOne({ email });
@@ -144,7 +149,6 @@ export const loginUser = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: "Invalid email or password" });
 
-    // Generate JWT Token
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
@@ -153,11 +157,7 @@ export const loginUser = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user: { id: user._id, name: user.name, email: user.email },
       token,
     });
   } catch (error) {
