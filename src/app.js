@@ -22,7 +22,7 @@ import authRoutes from "./routes/auth.js";
 const app = express();
 
 const allowedOrigins = [
-  "https://pochiroot-ecomerce.vercel.app",
+  "https://pochiroot-ecomerce-backend.vercel.app/",
   "http://localhost:5173",
 ];
 
