@@ -23,16 +23,15 @@ const app = express();
 
 const allowedOrigins = [
   "https://pochiroot-ecomerce-backend.vercel.app",
+  "https://pochiroot-ecomerce.vercel.app", // frontend
   "http://localhost:5173",
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = `CORS policy: No access from origin ${origin}`;
-      return callback(new Error(msg), false);
+    if (!origin) return callback(null, true); // allow curl/postman
+    if (!allowedOrigins.includes(origin)) {
+      return callback(new Error(`CORS policy: No access from origin ${origin}`), false);
     }
     return callback(null, true);
   },
@@ -41,7 +40,7 @@ app.use(cors({
   credentials: true,
 }));
 
-// Important: handle OPTIONS method explicitly for preflight
+// Preflight requests
 app.options("*", cors());
 
 // JSON body parser
