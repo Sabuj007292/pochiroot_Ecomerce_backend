@@ -17,22 +17,20 @@
 
 import express from "express";
 import cors from "cors";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
+
+dotenv.config();
 
 const app = express();
 
-// ✅ Proper CORS config
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://pochiroot-ecomerce.vercel.app" // Replace with actual frontend domain
-    ],
-    credentials: true,
-  })
-);
+// CORS config — allow frontend origin, adjust accordingly
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "*",
+  credentials: true,
+}));
 
-// Middleware
 app.use(express.json());
 
 // Routes
@@ -43,4 +41,18 @@ app.get("/", (req, res) => {
   res.json({ message: "API running" });
 });
 
-export default app;
+// Connect to MongoDB and start server
+const PORT = process.env.PORT || 5000;
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log("MongoDB connected");
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+})
+.catch((err) => {
+  console.error("MongoDB connection error:", err);
+});
