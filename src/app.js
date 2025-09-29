@@ -17,40 +17,61 @@
 
 import express from "express";
 import cors from "cors";
+import dotenv from "dotenv";
+import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
+
+dotenv.config();
+
+// Validate env variables
+if (!process.env.MONGO_URI) {
+  throw new Error("❌ MONGO_URI missing in .env");
+}
+if (!process.env.JWT_SECRET) {
+  throw new Error("❌ JWT_SECRET missing in .env");
+}
 
 const app = express();
 
+// CORS config
 const allowedOrigins = [
-  "https://pochiroot-ecomerce-backend.vercel.app",
-  "https://pochiroot-ecomerce.vercel.app", // frontend
-  "http://localhost:5173",
+  "http://localhost:5173",                    // local frontend
+  "https://pochiroot-ecomerce.vercel.app",   // deployed frontend
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // allow curl/postman
-    if (!allowedOrigins.includes(origin)) {
-      return callback(new Error(`CORS policy: No access from origin ${origin}`), false);
-    }
-    return callback(null, true);
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `CORS policy: No access from origin ${origin}`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
-// Preflight requests
 app.options("*", cors());
-
-// JSON body parser
 app.use(express.json());
+
+// Connect MongoDB
+connectDB();
 
 // Routes
 app.use("/api/auth", authRoutes);
 
+// Health check
 app.get("/", (req, res) => {
-  res.json({ message: "API running" });
+  res.json({ message: "API running", env: process.env.NODE_ENV || "development" });
+});
+
+// 404
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found", path: req.originalUrl });
 });
 
 export default app;
