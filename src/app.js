@@ -20,6 +20,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
+import profileRoutes from "./routes/profile/profile.js";
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ connectDB();
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes); // ✅ Profile API
 
 // Health check
 app.get("/", (req, res) => {
